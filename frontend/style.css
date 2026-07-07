@@ -1,0 +1,219 @@
+:root {
+    /* Colores Kaizuna basados en Agente_IA */
+    --accent-blue: #145890;
+    --accent-green: #5A8259;
+    --accent-gold: #D6A77A;
+    
+    --bg-deep: #FAF9F6;
+    --bg-panel: rgba(255, 255, 255, 0.85);
+    --border-glass: rgba(20, 88, 144, 0.15);
+    
+    --text-dark: #1F2A37;
+    --text-normal: #374151;
+    --text-light: #ffffff;
+    
+    --font-ui: 'Outfit', sans-serif;
+    --font-heading: 'Crimson Pro', serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-deep);
+    color: var(--text-normal);
+    font-family: var(--font-ui);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Blobs decorativos */
+.glow-bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: -1;
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.blob-purple {
+    width: 600px;
+    height: 600px;
+    background: var(--accent-blue);
+    top: -15%;
+    left: -10%;
+}
+
+.blob-green {
+    width: 500px;
+    height: 500px;
+    background: var(--accent-green);
+    bottom: -10%;
+    right: -5%;
+}
+
+.blob-gold {
+    width: 400px;
+    height: 400px;
+    background: var(--accent-gold);
+    top: 40%;
+    left: 40%;
+    opacity: 0.15;
+}
+
+/* Contenedor del Chat */
+.chat-container {
+    width: 100%;
+    max-width: 600px;
+    height: 90vh;
+    background: var(--bg-panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+/* Cabecera */
+.chat-header {
+    padding: 24px;
+    background: linear-gradient(135deg, var(--accent-blue), #0d3d66);
+    color: var(--text-light);
+    text-align: center;
+    border-bottom: 3px solid var(--accent-gold);
+}
+
+.chat-header h1 {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+}
+
+.chat-header p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* Área de mensajes */
+.chat-messages {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(20, 88, 144, 0.2);
+    border-radius: 10px;
+}
+
+/* Mensajes */
+.message {
+    max-width: 80%;
+    display: flex;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-content {
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.bot-message {
+    align-self: flex-start;
+}
+
+.bot-message .message-content {
+    background: white;
+    color: var(--text-dark);
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--border-glass);
+}
+
+.user-message {
+    align-self: flex-end;
+}
+
+.user-message .message-content {
+    background: var(--accent-green);
+    color: var(--text-light);
+    border-bottom-right-radius: 4px;
+}
+
+/* Input Area */
+.chat-input-area {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid var(--border-glass);
+}
+
+#chat-form {
+    display: flex;
+    gap: 12px;
+}
+
+#user-input {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid var(--border-glass);
+    border-radius: 50px;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+#user-input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(20, 88, 144, 0.1);
+}
+
+#send-button {
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#send-button:hover {
+    background: #0d3d66;
+    transform: scale(1.05);
+}
+
+#send-button:active {
+    transform: scale(0.95);
+}
