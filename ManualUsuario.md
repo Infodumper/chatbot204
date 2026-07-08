@@ -38,7 +38,7 @@ El sistema mantiene un diccionario de categorías con palabras clave asociadas. 
 |---|---|---|
 | `cumpleanos_mes` | cumpleaños, cumplen, enero-diciembre... | "¿Cuántos cumplen en mayo?" |
 | `buscar_lider` | líder, equipo, tiene | "¿Quiénes son los clientes de Carolina?" |
-| `buscar_pedidos_cliente` | pedidos, compras, unidades, pvp | "Pedidos del cliente 141639" |
+| `buscar_pedidos` | pedidos, compras, unidades, pvp, campaña, mas, top | "Pedidos de 141639" / "¿Qué campaña vendió más?" |
 | `buscar_localidad` | localidad, ciudad, viven | *(en desarrollo)* |
 
 ---
@@ -49,8 +49,16 @@ El sistema mantiene un diccionario de categorías con palabras clave asociadas. 
 - **"¿Quién/Quiénes/Cuáles...?"** → Devuelve una lista de nombres (máximo 10 para no saturar la pantalla).
 - **Pedidos de un cliente** → Devuelve un resumen con:
   - Cantidad de pedidos.
-  - Unidades totales y promedio por pedido.
-  - PVP total y promedio por pedido.
+  - Unidades: Totales, media y mediana por pedido.
+  - PVP: Total, media y mediana por pedido.
+- **Pedidos de un líder** → Devuelve un resumen con:
+  - Cantidad de campañas y de pedidos (con promedio de pedidos por campaña).
+  - Unidades: Totales, promedio por pedido y promedio por campaña.
+  - PVP: Total, promedio por pedido y promedio por campaña.
+- **Top / Rankings ("¿Qué líder...", "¿Qué campaña...")** → Resuelve consultas de máximos dinámicos. Extrae automáticamente la entidad mencionada (ej: "Estevez"), filtra los datos, agrupa por Campaña, Líder o Cliente (según lo pedido), y calcula quién obtuvo más:
+  - Pedidos ("más pedidos").
+  - Unidades ("más unidades").
+  - Facturación/PVP ("más PVP", "mayor facturación", "más ventas").
 
 ---
 
@@ -113,4 +121,7 @@ Para la intención de pedidos, el bot también puede buscar clientes por nombre.
 | ¿Cuántos clientes tiene el líder 140255? | Número de clientes |
 | ¿Quiénes son del equipo de Carolina? | Lista de nombres del equipo |
 | Pedidos del cliente 141639 | Resumen con unidades y PVP |
+| ¿Qué líder tuvo más pedidos? | Ranking global del líder con mayor cantidad de pedidos |
+| ¿Qué campaña fue la que más PVP hizo ESTEVEZ? | Extrae "Estevez", filtra y devuelve su mejor campaña por facturación |
+| ¿Qué cliente vendió más unidades? | Ranking global del cliente con más unidades compradas |
 | ¿Cuantos cunplen en maio? | Autocorrige y responde correctamente |

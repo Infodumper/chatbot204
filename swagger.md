@@ -23,7 +23,7 @@ Sin embargo, como en nuestras reglas de arquitectura definimos utilizar **FastAP
 
 He creado el archivo `backend/main.py` con el código inicial de nuestro servidor FastAPI. Para ver tu Swagger funcionando, haz lo siguiente:
 
-1. Abre una terminal en tu proyecto (la carpeta `chatbot_gmn`).
+1. Abre una terminal en tu proyecto (la carpeta `bot204`).
 2. Arranca el servidor ejecutando este comando (usando `uvicorn` que ya está en tu `requirements.txt`):
    ```bash
    uvicorn backend.main:app --reload

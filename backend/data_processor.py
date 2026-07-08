@@ -54,8 +54,7 @@ def clean_pedidos() -> dict:
     Limpia pedidos.csv y calcula el último líder de cada cliente.
 
     Retorna:
-        dict: Mapeo {Nro_cliente: Nro_lider_más_reciente} basado en la
-              campaña más reciente (formato CooAA → Año desc, Orden desc).
+        tuple: (dict de {Nro_cliente: Nro_lider_más_reciente}, DataFrame con estadísticas)
     """
     input_path = os.path.join("datos_originales", "pedidos.csv")
     output_dir = "datos_limpios"
@@ -102,21 +101,29 @@ def clean_pedidos() -> dict:
     )
     df_latest = df_temp.drop_duplicates(subset=['Nro'], keep='first')
 
-    return df_latest.set_index('Nro')['Lider'].to_dict()
+    nro_to_lider = df_latest.set_index('Nro')['Lider'].to_dict()
+
+    # 9. Agrupamientos (groupby) y Creación de columnas calculadas
+    # Calculamos el total de pedidos y facturación histórica por cliente.
+    df_stats = df.groupby('Nro').agg(
+        Total_Pedidos=('Campaña', 'count'),
+        Total_Facturado=('PVP', 'sum')
+    ).reset_index()
+
+    return nro_to_lider, df_stats
 
 
 # ==============================================================================
 # LIMPIEZA DE CLIENTES
 # ==============================================================================
 
-def clean_clientes(nro_to_lider: dict = None):
+def clean_clientes(nro_to_lider: dict = None, df_stats: pd.DataFrame = None):
     """
     Limpia clientes.csv y genera lideres.csv como tabla derivada.
 
     Args:
         nro_to_lider: Diccionario {Nro → Lider} proveniente de clean_pedidos().
-                      Si se provee, sobreescribe el líder estático del cliente
-                      con el líder de su pedido más reciente.
+        df_stats: DataFrame con estadísticas agrupadas de los pedidos (merge).
     """
     input_path = os.path.join("datos_originales", "clientes.csv")
     output_dir = "datos_limpios"
@@ -159,10 +166,14 @@ def clean_clientes(nro_to_lider: dict = None):
     df['Telefono'] = df['Telefono_Perla'].combine_first(df['Telefono_Clip'])
     df = df.drop(columns=['Telefono_Perla', 'Telefono_Clip'])
 
-    # 9. Unificar Fechas de Nacimiento
+    # 9. Unificar Fechas de Nacimiento y Cambio de formato de fechas
     if 'FecNac_Perla' in df.columns and 'FecNac_Clip' in df.columns:
         df['FecNac'] = df['FecNac_Perla'].combine_first(df['FecNac_Clip'])
         df = df.drop(columns=['FecNac_Perla', 'FecNac_Clip'])
+        
+    if 'FecNac' in df.columns:
+        # Convertimos al formato YYYY-MM-DD
+        df['FecNac'] = pd.to_datetime(df['FecNac'], errors='coerce', dayfirst=True).dt.strftime('%Y-%m-%d')
 
     # 10. Unificar IDs
     df = df.drop(columns=['IdCliente', 'IdClip'], errors='ignore')
@@ -173,7 +184,13 @@ def clean_clientes(nro_to_lider: dict = None):
     if nro_to_lider:
         df['Lider'] = df['Nro'].map(nro_to_lider).combine_first(df['Lider'])
 
-    # 12. Generar tabla de Líderes
+    # 12. Unión (merge) de dos DataFrames (Simulación de merge de 2 CSVs)
+    if df_stats is not None:
+        df = df.merge(df_stats, on='Nro', how='left')
+        df['Total_Pedidos'] = df['Total_Pedidos'].fillna(0).astype(int)
+        df['Total_Facturado'] = df['Total_Facturado'].fillna(0.0)
+
+    # 13. Generar tabla de Líderes
     lideres_unicos = df['Lider'].dropna().unique()
     lideres_df = pd.DataFrame({'Lider': lideres_unicos})
     nro_to_nombre = df.set_index('Nro')['Nombre'].to_dict()
@@ -196,5 +213,5 @@ def clean_clientes(nro_to_lider: dict = None):
 # ==============================================================================
 
 if __name__ == "__main__":
-    nro_to_lider = clean_pedidos()
-    clean_clientes(nro_to_lider)
+    nro_lider_dict, df_estatisticas = clean_pedidos()
+    clean_clientes(nro_lider_dict, df_estatisticas)

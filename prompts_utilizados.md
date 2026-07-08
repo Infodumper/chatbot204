@@ -36,3 +36,10 @@ Para el Trabajo Práctico, aquí se documentan los prompts enviados al agente (O
 > 6. **Regla de Negocio Crítica**: Elimina los pedidos duplicados **solo si coinciden exactamente en Campaña, Nro (cliente) y Lider** (conservando el último). Es muy importante incluir el `Lider` en esta validación porque un cliente puede hacer pedidos bajo distintos líderes a lo largo del tiempo, y queremos conservar su historial completo sin perder información.
 > 7. Elimina la columna `Nombre_Lider` del dataframe ya que es redundante (el nombre del líder ya está normalizado en `lideres.csv` y podemos relacionarlo mediante la columna `Lider`).
 > 8. Guarda el resultado en `datos_limpios/pedidos_limpio.csv` y asegúrate de que el script principal ejecute tanto la limpieza de clientes como la de pedidos."
+
+### Prompt 4: Completar Operaciones de Preparación de Datos
+> "Hola. Para cumplir estrictamente con los 8 requerimientos de la consigna sobre preparación de datos, necesito que agregues lo siguiente al script `data_processor.py`:
+> 1. **Cambio de formato de fechas**: Asegúrate de que, luego de unificar la fecha de nacimiento (`FecNac`), se convierta toda la columna al formato estándar internacional `YYYY-MM-DD` usando `pd.to_datetime()`.
+> 2. **Agrupamientos (groupby) y Columnas Calculadas**: En la limpieza de pedidos, extrae el Año y Orden de la Campaña numéricamente para crear nuevas columnas. Luego agrupa (`groupby`) el dataframe por número de cliente (`Nro`) y calcula dos métricas: el conteo de pedidos (`Total_Pedidos`) y la suma total gastada (`Total_Facturado`).
+> 3. **Unión (merge)**: En la limpieza de clientes, recibe esas estadísticas agrupadas y haz una unión (`merge` tipo left join) para incorporar el histórico de ventas directamente al dataframe de clientes. Rellena con 0 los valores nulos generados.
+> Esto complementa las operaciones de limpieza (duplicados, nulos, tipos de datos, ordenamiento) garantizando que todas las técnicas de Pandas requeridas estén implementadas y documentadas."

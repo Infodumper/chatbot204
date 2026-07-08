@@ -6,7 +6,7 @@ Desarrollado con **Python + FastAPI + Pandas** (backend) y **HTML/CSS/JS** (fron
 ## Arquitectura del Proyecto
 
 ```
-chatbot_gmn/
+bot204/
 ├── backend/
 │   ├── chat.py            # Motor NLP (Levenshtein, Bag of Words, NLTK)
 │   ├── data_loader.py     # Carga centralizada de DataFrames
