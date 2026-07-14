@@ -73,3 +73,4 @@ Una vez levantado Streamlit:
 | NLP (intenciones) | NLTK, Levenshtein (propio), Bag of Words |
 | Frontend | HTML5, CSS3, JavaScript |
 | Paleta de colores | Kaizuna (#145890, #5A8259, #D6A77A) |
+# bot204
