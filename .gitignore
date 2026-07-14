@@ -1,14 +1,14 @@
+# Entorno virtual y caché Python
 venv/
 __pycache__/
 *.pyc
-.env
-X_*.md
 
-# Datos sensibles
+# Variables de entorno
+.env
+
+# Datos sensibles y de proceso
 datos_perla/
+clientes_colores*.png
 
 # Procesos intermedios
 X_*.md
-
-# Datos importantes
-.env
