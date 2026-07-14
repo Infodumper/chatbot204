@@ -3,3 +3,12 @@ __pycache__/
 *.pyc
 .env
 X_*.md
+
+# Datos sensibles
+datos_perla/
+
+# Procesos intermedios
+X_*.md
+
+# Datos importantes
+.env

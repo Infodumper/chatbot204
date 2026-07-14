@@ -12,8 +12,9 @@ El backend se compone de 4 módulos Python con responsabilidades separadas:
 |---|---|
 | `data_processor.py` | Limpieza de CSVs crudos → CSVs limpios |
 | `data_loader.py` | Carga centralizada de DataFrames (punto único de acceso a los datos) |
-| `main.py` | API REST (endpoints FastAPI + Swagger) |
+| `main.py` | API REST (endpoints FastAPI) y conexión con Gemini |
 | `chat.py` | Motor NLP + resolución de intenciones con Pandas |
+| `gemini_service.py` | Envío del resultado calculado al LLM para su redacción amigable |
 
 ---
 
@@ -62,7 +63,20 @@ El sistema mantiene un diccionario de categorías con palabras clave asociadas. 
 
 ---
 
-## 4. Lógica del Sistema de Líderes
+## 4. Redacción con Google Gemini (LLM)
+
+Para que las respuestas sean fluidas y amigables, se ha integrado la API de **Google Gemini** (`gemini_service.py`).
+El flujo de una respuesta es el siguiente:
+1. El motor NLP procesa la consulta (Sección 2).
+2. Pandas filtra y calcula el *Dato Duro* (Secciones 3).
+3. Este "Dato Duro" se inyecta en un *prompt de sistema* que se envía a Gemini.
+4. Se le prohíbe explícitamente a Gemini realizar cálculos aritméticos, inventar números o modificar la verdad del dato. Su única función es la **redacción** amigable (agregar emojis, saludar, formatear de manera conversacional).
+
+> **Nota:** Si la API Key de Gemini (`GEMINI_API_KEY` en el archivo `.env`) no está configurada, el sistema automáticamente hace *fallback* y devuelve el dato duro calculado por Pandas.
+
+---
+
+## 5. Lógica del Sistema de Líderes
 
 ### 4.1 Asignación Dinámica (Última Campaña — CooAA)
 Los pedidos se identifican por campañas con formato **CooAA**:

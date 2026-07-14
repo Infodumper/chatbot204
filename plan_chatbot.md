@@ -14,8 +14,8 @@ POST /api/chat  ──►  main.py (FastAPI)
                      chat.py
                     ┌────────────────────────────────┐
                     │  1. Limpiar texto (NLTK + re)  │
-                    │  2. Autocorregir (Levenshtein)  │
-                    │  3. Categorizar (Bag of Words)  │
+                    │  2. Autocorregir (Levenshtein) │
+                    │  3. Categorizar (Bag of Words) │
                     └────────────┬───────────────────┘
                                  │
                                  ▼

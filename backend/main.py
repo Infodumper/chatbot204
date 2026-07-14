@@ -117,9 +117,12 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat", tags=["Chatbot"])
 def chat_endpoint(request: ChatRequest):
-    """Procesa un mensaje del usuario y devuelve la respuesta del chatbot."""
+    """Procesa un mensaje del usuario y devuelve la respuesta del chatbot enriquecida con Gemini."""
     from backend.chat import procesar_mensaje
-    respuesta = procesar_mensaje(request.message)
+    from backend.gemini_service import generar_respuesta_amigable
+    
+    dato_duro = procesar_mensaje(request.message)
+    respuesta = generar_respuesta_amigable(request.message, dato_duro)
     return {"reply": respuesta}
 
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")

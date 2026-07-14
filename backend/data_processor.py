@@ -49,16 +49,16 @@ def _trim_text_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
 # LIMPIEZA DE PEDIDOS
 # ==============================================================================
 
-def clean_pedidos() -> dict:
+def clean_pedidos(input_filename="pedidos.csv", output_filename="pedidos_limpio.csv") -> dict:
     """
     Limpia pedidos.csv y calcula el último líder de cada cliente.
 
     Retorna:
         tuple: (dict de {Nro_cliente: Nro_lider_más_reciente}, DataFrame con estadísticas)
     """
-    input_path = os.path.join("datos_originales", "pedidos.csv")
+    input_path = os.path.join("datos_originales", input_filename)
     output_dir = "datos_limpios"
-    output_path = os.path.join(output_dir, "pedidos_limpio.csv")
+    output_path = os.path.join(output_dir, output_filename)
 
     os.makedirs(output_dir, exist_ok=True)
     df = pd.read_csv(input_path)
@@ -117,7 +117,7 @@ def clean_pedidos() -> dict:
 # LIMPIEZA DE CLIENTES
 # ==============================================================================
 
-def clean_clientes(nro_to_lider: dict = None, df_stats: pd.DataFrame = None):
+def clean_clientes(nro_to_lider: dict = None, df_stats: pd.DataFrame = None, input_filename="clientes.csv", output_filename="clientes_limpio.csv"):
     """
     Limpia clientes.csv y genera lideres.csv como tabla derivada.
 
@@ -125,9 +125,9 @@ def clean_clientes(nro_to_lider: dict = None, df_stats: pd.DataFrame = None):
         nro_to_lider: Diccionario {Nro → Lider} proveniente de clean_pedidos().
         df_stats: DataFrame con estadísticas agrupadas de los pedidos (merge).
     """
-    input_path = os.path.join("datos_originales", "clientes.csv")
+    input_path = os.path.join("datos_originales", input_filename)
     output_dir = "datos_limpios"
-    output_path = os.path.join(output_dir, "clientes_limpio.csv")
+    output_path = os.path.join(output_dir, output_filename)
 
     os.makedirs(output_dir, exist_ok=True)
     df = pd.read_csv(input_path)

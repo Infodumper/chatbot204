@@ -42,9 +42,10 @@ CATEGORIAS = {
         'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
     ],
     'buscar_pedidos': [
-        'pedidos', 'compras', 'facturacion', 'unidades', 'pvp', 'promedio', 'campaña', 'campañas'
+        'pedidos', 'compras', 'facturacion', 'unidades', 'pvp', 'promedio', 'campaña', 'campañas',
+        'ventas', 'dinero', 'plata', 'vendio', 'mayor', 'mas', 'mejor', 'mejores', 'top'
     ],
-    'buscar_lider': ['lider', 'líder', 'equipo', 'tiene'],
+    'buscar_lider': ['lider', 'líder', 'equipo'],
     'buscar_localidad': ['localidad', 'ciudad', 'viven', 'pueblo'],
 }
 
@@ -216,8 +217,8 @@ def procesar_mensaje(mensaje: str) -> str:
         return _resolver_pedidos(palabras_corregidas)
 
     return (
-        "Lo siento, mi motor de NLP aún está aprendiendo. "
-        "Prueba preguntando por cumpleaños, líderes o pedidos de un cliente."
+        "No cuento con información sobre esa consulta en este momento. "
+        "Recuerda que solo respondo a consultas relacionadas con ventas, clientes cargados, líderes y pedidos."
     )
 
 
@@ -226,12 +227,42 @@ def procesar_mensaje(mensaje: str) -> str:
 # ==============================================================================
 
 def _resolver_cumpleanos(palabras: list) -> str:
-    """Resuelve la intención de búsqueda de cumpleaños por mes."""
+    """Resuelve la intención de búsqueda de cumpleaños por mes o por cliente."""
     mes_detectado = next((m for m in MESES_NUM if m in palabras), None)
-    if not mes_detectado:
-        return "Entendí que preguntas por cumpleaños, pero no detecté un mes válido."
-
     df = get_clientes_df()
+    
+    if not mes_detectado:
+        # Intentar buscar por cliente
+        # Excluir palabras de la intención y palabras comunes/verbos que puedan chocar con apellidos
+        palabras_a_excluir = set(CATEGORIAS['cumpleanos_mes']) | set(VOCABULARIO) | {
+            'dime', 'decime', 'diez', 'cinco', 'los', 'las', 'que', 'tengas', 
+            'registrado', 'registrados', 'tienen', 'tiene', 'del', 'para', 'por', 'como'
+        }
+        registros = df[['Nombre', 'Nro']].dropna().to_dict('records')
+        nro_cliente, nombre_cliente = MotorNLP.buscar_entidad(
+            palabras, registros,
+            col_nombre='Nombre', col_id='Nro',
+            excluir=palabras_a_excluir,
+            max_dist=1, buscar_partes=True,
+        )
+        
+        if nro_cliente:
+            cliente_data = df[df['Nro'] == nro_cliente].iloc[0]
+            fec_nac = cliente_data.get('FecNac')
+            if pd.isna(fec_nac) or str(fec_nac).strip() == '':
+                return f"No tengo registrada la fecha de nacimiento de {nombre_cliente}."
+            
+            try:
+                # pandas to_datetime maneja bien el parseo, pero en caso de fechas raras o incompletas (ej 0000-00-00), fallará y caerá en el except
+                fecha = pd.to_datetime(fec_nac, dayfirst=True)
+                meses_es = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+                nombre_mes = meses_es[fecha.month - 1]
+                return f"El cumpleaños de <strong>{nombre_cliente}</strong> es el <strong>{fecha.day} de {nombre_mes}</strong>."
+            except Exception:
+                return f"El cumpleaños de {nombre_cliente} está registrado como: {fec_nac}."
+
+        return "Entendí que preguntas por cumpleaños, pero no detecté un mes válido ni el nombre de un cliente."
+
     df_fechas = pd.to_datetime(df['FecNac'], errors='coerce')
     df_filtrado = df[df_fechas.dt.month == MESES_NUM[mes_detectado]]
     cantidad = df_filtrado.shape[0]
@@ -250,8 +281,8 @@ def _resolver_cumpleanos(palabras: list) -> str:
 
 def _resolver_lider(palabras: list) -> str:
     """Resuelve la intención de búsqueda por líder (por ID o por nombre)."""
-    # Intentar ID numérico directo
-    nro_lider = next((int(p) for p in palabras if p.isnumeric()), None)
+    # Intentar ID numérico directo, asegurándose que no sea un año (ej. 2025)
+    nro_lider = next((int(p) for p in palabras if p.isnumeric() and not (len(p) == 4 and p.startswith('20'))), None)
     nombre_lider = None
 
     # Si no hay ID, buscar por nombre en lideres.csv
@@ -303,6 +334,15 @@ def _resolver_pedidos(palabras: list) -> str:
         campanas_unicas = [str(c).lower() for c in df_pedidos['Campaña'].unique()]
         filtro_campana = next((p for p in palabras if p in campanas_unicas), None)
         
+        # Inferir campaña a partir de mes y año si no hay coincidencia directa
+        if not filtro_campana:
+            mes_detectado = next((m for m in MESES_NUM if m in palabras), None)
+            anio_detectado = next((p for p in palabras if p.isnumeric() and len(p) == 4 and p.startswith('20')), None)
+            if mes_detectado and anio_detectado:
+                mes_num = MESES_NUM[mes_detectado]
+                anio_corto = anio_detectado[-2:]
+                filtro_campana = f"c{mes_num:02d}{anio_corto}"
+        
         if filtro_campana:
             df_pedidos = df_pedidos[df_pedidos['Campaña'].str.lower() == filtro_campana]
             if df_pedidos.empty:
@@ -320,6 +360,10 @@ def _resolver_pedidos(palabras: list) -> str:
             nombres_a_excluir.add(filtro_campana)
         if es_promedio:
             nombres_a_excluir.add('promedio')
+            
+        # Excluir también meses y años que puedan confundir el NLP
+        nombres_a_excluir.update(MESES_NUM.keys())
+        nombres_a_excluir.update(p for p in palabras if p.isnumeric() and len(p) == 4 and p.startswith('20'))
             
         posibles_nombres = [p for p in palabras if p not in nombres_a_excluir]
         
@@ -401,7 +445,7 @@ def _resolver_pedidos(palabras: list) -> str:
 
     if es_lider:
         # Lógica para líder
-        nro_lider = next((int(p) for p in palabras if p.isnumeric()), None)
+        nro_lider = next((int(p) for p in palabras if p.isnumeric() and not (len(p) == 4 and p.startswith('20'))), None)
         nombre_lider = None
         
         if not nro_lider:
@@ -452,7 +496,7 @@ def _resolver_pedidos(palabras: list) -> str:
         
     else:
         # Lógica para cliente
-        nro_cliente = next((int(p) for p in palabras if p.isnumeric()), None)
+        nro_cliente = next((int(p) for p in palabras if p.isnumeric() and not (len(p) == 4 and p.startswith('20'))), None)
         nombre_cliente = None
         df_clientes = get_clientes_df()
 

@@ -8,11 +8,13 @@ El backend está desarrollado completamente en Python y su función principal es
 *   **Tecnologías principales:**
     *   **FastAPI:** Framework web para levantar el servidor y exponer los endpoints REST.
     *   **Pandas:** Motor de análisis y manipulación de datos. Se utiliza para leer los archivos `.csv`, aplicar filtros, buscar información y realizar agrupaciones o cálculos (como promedios y sumas) en memoria.
+    *   **Google Gemini API:** Modelo de lenguaje utilizado exclusivamente para la redacción final de las respuestas, partiendo del dato calculado por Pandas.
     *   **NLTK (Natural Language Toolkit):** Utilizado para tokenizar, limpiar y analizar el texto ingresado por el usuario.
 
 *   **Estructura del Backend (`/backend/`):**
-    *   `main.py`: Archivo principal que levanta el servidor FastAPI, define las rutas de la API (como `/api/chat`) e integra el motor NLP.
-    *   `chat.py`: Contiene toda la lógica central del chatbot (NLP). Se encarga de recibir el texto, limpiarlo, autocorregirlo (usando distancia de Levenshtein), categorizar la intención del usuario y determinar la respuesta utilizando Pandas.
+    *   `main.py`: Archivo principal que levanta el servidor FastAPI, define las rutas de la API (como `/api/chat`) e integra el motor NLP y Gemini.
+    *   `chat.py`: Contiene toda la lógica central del chatbot (NLP). Se encarga de recibir el texto, limpiarlo, autocorregirlo (usando distancia de Levenshtein), categorizar la intención del usuario y determinar el "dato duro" calculado utilizando Pandas.
+    *   `gemini_service.py`: Servicio encargado de tomar el dato calculado por Pandas y utilizar la API de Google Gemini para redactar una respuesta humana y conversacional, cumpliendo la regla de delegar el cálculo a Pandas y la redacción al LLM.
     *   `data_loader.py`: Script con funciones utilitarias y centralizadas para leer en caché (usando DataFrames de Pandas) los archivos CSV que fueron previamente limpiados.
     *   `data_processor.py`: Módulo para la limpieza, transformación y estandarización de los datos crudos (desde `/datos_originales` hacia `/datos_limpios`).
 
@@ -30,3 +32,5 @@ El frontend se encarga de la interfaz gráfica y la experiencia del usuario (UI/
     *   `index.html`: La vista única de la aplicación. Contiene la semántica y estructura básica de la ventana del chatbot.
     *   `style.css`: Estilos visuales del chat. Define las animaciones, tipografías, colores institucionales y disposición responsive para distintos tamaños de pantalla.
     *   `script.js`: Controlador del lado del cliente. Intercepta los eventos de teclado (como presionar la tecla *Enter*) y del botón de enviar, toma el texto, llama al servidor (`POST /api/chat`) y agrega la respuesta recibida a la interfaz gráfica.
+
+*Nota: Existe una interfaz alternativa en `streamlit_app.py` desarrollada para cumplir requisitos de consignas académicas, pero la interfaz principal y oficial es la SPA en HTML/CSS/JS (cuyos colores son los originales).*
