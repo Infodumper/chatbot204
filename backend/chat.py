@@ -376,14 +376,22 @@ def _resolver_pedidos(palabras: list) -> str:
         campanas_unicas = [str(c).lower() for c in df_pedidos['Campaña'].unique()]
         filtro_campana = next((p for p in palabras if p in campanas_unicas), None)
         
+        mes_aplicado = None
         # Inferir campaña a partir de mes y año si no hay coincidencia directa
         if not filtro_campana:
             mes_detectado = next((m for m in MESES_NUM if m in palabras), None)
             anio_detectado = next((p for p in palabras if p.isnumeric() and len(p) == 4 and p.startswith('20')), None)
-            if mes_detectado and anio_detectado:
+            if mes_detectado:
                 mes_num = MESES_NUM[mes_detectado]
-                anio_corto = anio_detectado[-2:]
-                filtro_campana = f"c{mes_num:02d}{anio_corto}"
+                if anio_detectado:
+                    anio_corto = anio_detectado[-2:]
+                    filtro_campana = f"c{mes_num:02d}{anio_corto}"
+                else:
+                    mes_aplicado = mes_detectado.capitalize()
+                    prefix = f"c{mes_num:02d}"
+                    df_pedidos = df_pedidos[df_pedidos['Campaña'].str.lower().str.startswith(prefix)]
+                    if df_pedidos.empty:
+                        return f"No hay pedidos registrados para el mes de {mes_aplicado}."
         
         if filtro_campana:
             df_pedidos = df_pedidos[df_pedidos['Campaña'].str.lower() == filtro_campana]
@@ -474,7 +482,7 @@ def _resolver_pedidos(palabras: list) -> str:
             sujeto_str = f"El cliente <strong>{nombre}</strong> ({top_id})"
             
         filtro_str = f" para <strong>{filtro_entidad_nombre}</strong>" if filtro_entidad_nombre else ""
-        texto_campana = f" en la campaña <strong>{filtro_campana.upper()}</strong>" if filtro_campana else ""
+        texto_campana = f" en la campaña <strong>{filtro_campana.upper()}</strong>" if filtro_campana else (f" en el mes de <strong>{mes_aplicado}</strong>" if mes_aplicado else "")
         texto_promedio = " promedio" if es_promedio else ""
             
         if metrica == 'Pedidos':
