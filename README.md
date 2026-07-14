@@ -64,6 +64,12 @@ El archivo `.env` debe contener:
 ```
 GEMINI_API_KEY=tu_api_key_de_google_gemini
 GEMINI_MODEL=gemini-3.5-flash
+
+# Credenciales de acceso
+ADMIN_USERNAME=Ignacio
+ADMIN_PASSWORD=Admin123
+USER_USERNAME=Nacho
+USER_PASSWORD=Usuario123
 ```
 
 > Si no se configura la API Key, el bot funciona igualmente pero devuelve los datos crudos sin redacción amigable.
@@ -84,8 +90,7 @@ Una vez levantado:
 
 ### Credenciales de Acceso
 
-Las credenciales (usuarios y roles) están configuradas internamente en el módulo de autenticación (`backend/auth.py`). 
-Por motivos de seguridad, no se exponen en este documento.
+Las credenciales (usuarios y contraseñas) están configuradas a través de variables de entorno en el archivo `.env`. Si no se definen, el sistema utilizará credenciales por defecto por motivos de desarrollo.
 
 ---
 

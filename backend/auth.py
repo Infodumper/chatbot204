@@ -13,17 +13,28 @@ Limitaciones conocidas:
 import hashlib
 import secrets
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Obtener credenciales desde las variables de entorno (con fallback a valores por defecto)
+admin_username = os.getenv("ADMIN_USERNAME", "Ignacio")
+admin_password = os.getenv("ADMIN_PASSWORD", "Admin123")
+user_username = os.getenv("USER_USERNAME", "Nacho")
+user_password = os.getenv("USER_PASSWORD", "Usuario123")
+
 # Definición de usuarios con contraseñas hasheadas (SHA-256)
 USERS = {
-    "ignacio": {
-        "username": "Ignacio",
+    admin_username.lower(): {
+        "username": admin_username,
         "role": "Admin",
-        "password_hash": hashlib.sha256("Admin123".encode("utf-8")).hexdigest()
+        "password_hash": hashlib.sha256(admin_password.encode("utf-8")).hexdigest()
     },
-    "nacho": {
-        "username": "Nacho",
+    user_username.lower(): {
+        "username": user_username,
         "role": "User",
-        "password_hash": hashlib.sha256("Usuario123".encode("utf-8")).hexdigest()
+        "password_hash": hashlib.sha256(user_password.encode("utf-8")).hexdigest()
     }
 }
 
