@@ -202,7 +202,13 @@ def clean_clientes(nro_to_lider: dict = None, df_stats: pd.DataFrame = None, inp
     lideres_df.to_csv(lideres_path, index=False, encoding='utf-8')
     print(f"[OK] Líderes guardados en: {lideres_path}")
 
-    # 13. Guardar clientes limpios
+    # 14. Formatear Lider y NroDoc como texto sin decimales
+    for col in ['Lider', 'NroDoc']:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.replace(r'\.0$', '', regex=True)
+            df[col] = df[col].replace({'nan': '', '<NA>': ''})
+
+    # 15. Guardar clientes limpios
     df = df.drop(columns=['NombreLider'], errors='ignore')
     df.to_csv(output_path, index=False, encoding='utf-8')
     print(f"[OK] Clientes limpios guardados en: {output_path}")

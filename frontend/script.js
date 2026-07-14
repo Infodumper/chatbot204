@@ -3,6 +3,90 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('user-input');
     const chatMessages = document.getElementById('chat-messages');
     
+    // Login Modal Elements
+    const loginModal = document.getElementById('login-modal');
+    const appLayout = document.getElementById('app-layout');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
+
+    // Check auth
+    let authToken = localStorage.getItem('auth_token');
+    let authUsername = localStorage.getItem('auth_username');
+    if (authToken) {
+        document.getElementById('current-username').textContent = authUsername || 'Usuario';
+        loginModal.style.display = 'none';
+        appLayout.style.display = 'flex';
+    } else {
+        loginModal.style.display = 'flex';
+        appLayout.style.display = 'none';
+    }
+
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        loginError.style.display = 'none';
+        
+        const originalBtnText = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<span>Verificando...</span>';
+        loginBtn.disabled = true;
+
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Credenciales incorrectas');
+            }
+            return response.json();
+        })
+        .then(data => {
+            authToken = data.access_token;
+            authUsername = data.user.username;
+            localStorage.setItem('auth_token', authToken);
+            localStorage.setItem('auth_username', authUsername);
+            document.getElementById('current-username').textContent = authUsername;
+            loginModal.style.display = 'none';
+            appLayout.style.display = 'flex';
+        })
+        .catch(error => {
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+        })
+        .finally(() => {
+            loginBtn.innerHTML = originalBtnText;
+            loginBtn.disabled = false;
+        });
+    });
+
+    // Profile Dropdown Logic
+    const profileBtn = document.getElementById('user-profile-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userDropdown.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!profileBtn.contains(e.target)) {
+            userDropdown.classList.remove('show');
+        }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_username');
+        authToken = null;
+        authUsername = null;
+        appLayout.style.display = 'none';
+        loginModal.style.display = 'flex';
+    });
+
     // Theme toggle
     const themeToggleBtn = document.getElementById('theme-toggle');
     const iconSun = document.querySelector('.icon-sun');
@@ -94,11 +178,22 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/chat', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({ message: messageText })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('auth_username');
+                authToken = null;
+                appLayout.style.display = 'none';
+                loginModal.style.display = 'flex';
+                throw new Error("Sesión expirada");
+            }
+            return response.json();
+        })
         .then(data => {
             typingIndicator.remove();
             setTimeout(() => {
@@ -107,7 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             typingIndicator.remove();
-            addMessage("Hubo un error al comunicarse con el servidor.", 'bot-message');
+            if (error.message !== "Sesión expirada") {
+                addMessage("Hubo un error al comunicarse con el servidor.", 'bot-message');
+            }
             console.error("Error:", error);
         });
     });

@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
@@ -6,6 +7,7 @@ import pandas as pd
 from pydantic import BaseModel
 
 from backend.data_loader import get_clientes_df, get_pedidos_df, get_lideres_df
+import backend.auth as auth
 
 app = FastAPI(
     title="API del Chatbot Bot204",
@@ -13,6 +15,33 @@ app = FastAPI(
     version="2.0.0"
 )
 
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    user = auth.get_user_from_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido o expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/api/login", tags=["Auth"])
+def login(request: LoginRequest):
+    user = auth.authenticate_user(request.username, request.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales incorrectas",
+        )
+    token = auth.create_session(user)
+    return {"access_token": token, "token_type": "bearer", "user": {"username": user["username"], "role": user["role"]}}
 
 @app.get("/api/estado", tags=["Sistema"])
 def get_estado():
@@ -116,7 +145,7 @@ class ChatRequest(BaseModel):
     message: str
 
 @app.post("/api/chat", tags=["Chatbot"])
-def chat_endpoint(request: ChatRequest):
+def chat_endpoint(request: ChatRequest, current_user: dict = Depends(get_current_user)):
     """Procesa un mensaje del usuario y devuelve la respuesta del chatbot enriquecida con Gemini."""
     from backend.chat import procesar_mensaje
     from backend.gemini_service import generar_respuesta_amigable

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot204 - Asistente de información comercial</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Crimson+Pro:wght@600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 <body>
@@ -12,37 +13,82 @@
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
 
-    <div class="app-layout">
+    <!-- Login Modal -->
+    <div id="login-modal" class="login-modal">
+        <div class="login-container">
+            <div class="login-header">
+                <img src="/static/logo/Logo-sin-fondo.png" alt="Logo" class="login-logo">
+                <h2>Iniciar Sesión</h2>
+                <p>Ingresá tus credenciales para continuar</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                <div id="login-error" class="login-error" style="display: none;"></div>
+                <button type="submit" class="login-btn" id="login-btn">
+                    <span>Ingresar</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-layout" id="app-layout" style="display: none;">
         <nav class="app-sidebar">
-            <div class="nav-brand">
+            <div class="nav-brand" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                 <img src="/static/logo/Logo-sin-fondo.png" alt="Logo" class="sidebar-logo">
+                <span style="color: var(--text-title); font-weight: 700; font-size: 1.3rem; font-family: var(--font-heading); text-align: center;">Bot204</span>
             </div>
             <div class="nav-items">
-                <!-- Iconos removidos por solicitud -->
+                <!-- Personitas (Chat/Equipo) -->
+                <div class="nav-icon active" title="Chat">
+                    <i class="ph ph-users" style="font-size: 32px;"></i>
+                </div>
+                <!-- Swagger (Base de datos) -->
+                <div class="nav-icon" title="Swagger API Docs" onclick="window.open('/docs', '_blank')">
+                    <i class="ph ph-database" style="font-size: 32px;"></i>
+                </div>
+                <!-- Robot (Agentes IA) -->
+                <div class="nav-icon" title="Agentes IA">
+                    <i class="ph ph-robot" style="font-size: 32px;"></i>
+                </div>
             </div>
-            <div class="nav-footer">
+            <div class="nav-footer" style="flex-direction: column; align-items: center;">
+                <button id="theme-toggle" class="theme-toggle-btn" title="Cambiar tema" style="margin-bottom: 15px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <div class="user-profile" id="user-profile-btn" title="Opciones de usuario">
+                    <span id="current-username" class="username-display">Usuario</span>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <button id="logout-btn" class="logout-btn">
+                            <i class="ph ph-sign-out"></i> Cerrar sesión
+                        </button>
+                    </div>
+                </div>
             </div>
         </nav>
         
         <div class="app-wrapper">
             <div class="top-bar">
             <h1 class="app-title">Comunicación Interna</h1>
-            <button id="theme-toggle" class="theme-toggle-btn" title="Cambiar tema">
-                <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
         </div>
 
         <div class="main-card">
