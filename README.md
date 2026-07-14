@@ -84,10 +84,8 @@ Una vez levantado:
 
 ### Credenciales de Acceso
 
-| Usuario   | Rol   | Contraseña  |
-|-----------|-------|-------------|
-| Ignacio   | Admin | Admin123    |
-| Nacho     | User  | Usuario123  |
+Las credenciales (usuarios y roles) están configuradas internamente en el módulo de autenticación (`backend/auth.py`). 
+Por motivos de seguridad, no se exponen en este documento.
 
 ---
 

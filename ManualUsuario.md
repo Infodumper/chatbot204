@@ -22,12 +22,8 @@ El backend se compone de 5 módulos Python con responsabilidades separadas:
 ## 2. Sistema de Autenticación
 
 ### 2.1 Usuarios y Contraseñas
-El sistema cuenta con un registro de usuarios definido estáticamente en `auth.py`. Las contraseñas se almacenan hasheadas con **SHA-256** (nunca en texto plano).
-
-| Usuario | Rol | Contraseña |
-|---|---|---|
-| Ignacio | Admin | Admin123 |
-| Nacho | User | Usuario123 |
+El sistema cuenta con un registro de usuarios definido estáticamente en el archivo `backend/auth.py`. 
+Por motivos de seguridad, las contraseñas no se exponen en esta documentación. En dicho archivo se configuran los usuarios y sus roles, y las contraseñas se almacenan internamente aplicando hashing con **SHA-256** (nunca en texto plano).
 
 ### 2.2 Flujo de Login
 1. El usuario ingresa sus credenciales en el modal de login (frontend).
