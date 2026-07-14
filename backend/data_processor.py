@@ -191,7 +191,7 @@ def clean_clientes(nro_to_lider: dict = None, df_stats: pd.DataFrame = None, inp
         df['Total_Facturado'] = df['Total_Facturado'].fillna(0.0)
 
     # 13. Generar tabla de Líderes
-    lideres_unicos = df['Lider'].dropna().unique()
+    lideres_unicos = df['Lider'].dropna().astype(int).unique()
     lideres_df = pd.DataFrame({'Lider': lideres_unicos})
     nro_to_nombre = df.set_index('Nro')['Nombre'].to_dict()
     lideres_df['NombreLider'] = lideres_df['Lider'].map(nro_to_nombre).str.split().str[0]

@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.innerHTML = '';
         
         // Add greeting
-        addMessage("¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de ventas especializado. ¿En qué te puedo ayudar hoy?", 'bot-message');
+        addMessage("¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?", 'bot-message');
         
         // Add new tab in sidebar
         consultationCount++;

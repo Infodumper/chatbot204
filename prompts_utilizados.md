@@ -20,10 +20,17 @@ Para el Trabajo Práctico, aquí se documentan los prompts enviados al agente (O
 ### Prompt 2: Optimización de la base de datos (Normalización de Líderes)
 > "Como paso adicional para optimizar la estructura de los datos limpios y corregir la inconsistencia de los líderes:
 > 1. Crea un nuevo dataframe a partir de los clientes que contenga los códigos de líderes (`Lider`) únicos. 
-> 2. Este nuevo dataframe debe tener las columnas `IdLider` (autoincremental), `Lider` (el código original) y `NombreLider`.
+> 2. Este nuevo dataframe debe tener las columnas `IdLider` (autoincremental), `Lider` (el código original) y `NombreLider`. **Asegúrate de que la columna Lider se guarde como número entero, sin decimales.**
 > 3. Para obtener el `NombreLider` correcto, debes cruzar el código de `Lider` buscando ese mismo código en la columna `Nro` del dataframe de clientes (ya que cada líder es en realidad un cliente). Una vez encontrado el cliente correspondiente, copia solo la primera palabra de su columna `Cliente` y asígnala a `NombreLider`.
 > 4. Guárdalo como un nuevo archivo `datos_limpios/lideres.csv`.
 > 5. Una vez hecho esto, elimina la columna `NombreLider` del dataframe original de clientes (ya que ahora estarán relacionados por el código de `Lider`) y sobreescribe `clientes_limpio.csv`."
+
+### Prompt 5: Mejoras en el Motor NLP para listar líderes
+> "Por favor, mejora el archivo `chat.py` del motor NLP para soportar correctamente consultas del tipo '¿Qué líderes hay?', 'Dime los nombres de los líderes', etc.:
+> 1. Agrega las palabras 'lideres', 'líderes', 'nombres', 'lista', 'todos', 'dime', 'decime', 'que', 'qué' y 'hay' al `VOCABULARIO` para que la autocorrección las reconozca.
+> 2. Agrega la versión en plural de líder a la intención `buscar_lider`.
+> 3. Modifica la lista `_PALABRAS_LISTADO` incorporando 'que', 'qué', 'hay', 'nombres', 'lista', 'todos', 'dime', 'decime'.
+> 4. Actualiza la función `_resolver_lider()` de modo que, si el usuario pide una lista y no especifica un número de líder, se conecte a `lideres.csv` y devuelva un listado formateado con todos los líderes registrados (NombreLider)."
 
 ### Prompt 3: Limpieza de Pedidos
 > "Hola. Ahora necesito que agregues una función `clean_pedidos()` al script `data_processor.py` para limpiar el archivo `datos_originales/pedidos.csv`.

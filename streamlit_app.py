@@ -39,4 +39,4 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Incrustar la interfaz HTML nativa
-st.markdown('<iframe src="http://127.0.0.1:8000/"></iframe>', unsafe_allow_html=True)
+st.markdown(f'<iframe src="http://127.0.0.1:8000/?v={{time.time()}}"></iframe>', unsafe_allow_html=True)

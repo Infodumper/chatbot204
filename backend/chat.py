@@ -29,23 +29,24 @@ from backend.data_loader import get_clientes_df, get_pedidos_df, get_lideres_df
 VOCABULARIO = [
     'cumpleaños', 'cumplen', 'mes', 'enero', 'febrero', 'marzo', 'abril',
     'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre',
-    'diciembre', 'lider', 'clientes', 'pedidos', 'localidad', 'cuantos',
+    'diciembre', 'lider', 'lideres', 'líder', 'líderes', 'clientes', 'pedidos', 'localidad', 'cuantos',
     'tiene', 'quien', 'quienes', 'cuales', 'compras', 'facturacion',
     'unidades', 'pvp', 'promedio', 'total', 'mas', 'mayor', 'top', 
-    'mejor', 'mejores', 'ventas', 'dinero', 'plata', 'vendio', 'campaña', 'campañas'
+    'mejor', 'mejores', 'ventas', 'dinero', 'plata', 'vendio', 'campaña', 'campañas',
+    'nombres', 'lista', 'todos', 'dime', 'decime'
 ]
 
 CATEGORIAS = {
+    'buscar_pedidos': [
+        'pedidos', 'compras', 'facturacion', 'unidades', 'pvp', 'promedio', 'campaña', 'campañas',
+        'ventas', 'dinero', 'plata', 'vendio', 'mayor', 'mas', 'mejor', 'mejores', 'top'
+    ],
     'cumpleanos_mes': [
         'cumpleaños', 'cumplen', 'cumple', 'nacimiento', 'mes',
         'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
         'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
     ],
-    'buscar_pedidos': [
-        'pedidos', 'compras', 'facturacion', 'unidades', 'pvp', 'promedio', 'campaña', 'campañas',
-        'ventas', 'dinero', 'plata', 'vendio', 'mayor', 'mas', 'mejor', 'mejores', 'top'
-    ],
-    'buscar_lider': ['lider', 'líder', 'equipo'],
+    'buscar_lider': ['lider', 'lideres', 'líder', 'líderes', 'equipo'],
     'buscar_localidad': ['localidad', 'ciudad', 'viven', 'pueblo'],
 }
 
@@ -56,7 +57,10 @@ MESES_NUM = {
 }
 
 # Palabras que indican que el usuario quiere una lista de nombres.
-_PALABRAS_LISTADO = {'quien', 'quienes', 'cuales', 'quién', 'quiénes'}
+_PALABRAS_LISTADO = {'quien', 'quienes', 'cuales', 'quién', 'quiénes', 'nombres', 'lista', 'dime', 'decime', 'todos', 'que', 'qué', 'hay'}
+
+# Palabras que indican que el usuario quiere una cantidad numerica.
+_PALABRAS_CANTIDAD = {'cuantos', 'cuantas', 'cuántos', 'cuántas', 'cantidad', 'total', 'cuanto', 'cuanta'}
 
 
 # ==============================================================================
@@ -176,6 +180,10 @@ def _pide_listado(palabras: list) -> bool:
     """Retorna True si el usuario pide nombres (quién/quiénes/cuáles)."""
     return bool(set(palabras) & _PALABRAS_LISTADO)
 
+def _pide_cantidad(palabras: list) -> bool:
+    """Retorna True si el usuario pide una cantidad numérica (cuántos/cuántas)."""
+    return bool(set(palabras) & _PALABRAS_CANTIDAD)
+
 
 def _formatear_lista_nombres(nombres: list, intro: str, limite: int = 10) -> str:
     """Formatea una lista de nombres con truncamiento opcional."""
@@ -268,6 +276,9 @@ def _resolver_cumpleanos(palabras: list) -> str:
     cantidad = df_filtrado.shape[0]
     mes_cap = mes_detectado.capitalize()
 
+    if _pide_cantidad(palabras):
+        return f"En {mes_cap} cumplen años <strong>{cantidad}</strong> clientes."
+
     if _pide_listado(palabras):
         if cantidad == 0:
             return f"Nadie cumple años en el mes de {mes_cap}."
@@ -296,12 +307,28 @@ def _resolver_lider(palabras: list) -> str:
         )
 
     if not nro_lider:
+        # Si piden cantidad (ej. "cuantos lideres hay")
+        if _pide_cantidad(palabras):
+            df_lideres = get_lideres_df()
+            return f"Actualmente hay {len(df_lideres)} líderes registrados."
+            
+        # Si piden una lista o nombres, devolver todos los líderes
+        if _pide_listado(palabras) or 'nombres' in palabras or 'todos' in palabras:
+            df_lideres = get_lideres_df()
+            if df_lideres.empty:
+                return "Actualmente no hay líderes registrados."
+            nombres = df_lideres['NombreLider'].dropna().tolist()
+            return _formatear_lista_nombres(nombres, "Los líderes registrados son", limite=20)
+            
         return "Entendí que buscas por líder. Por favor, indícame el nombre o el número de líder."
 
     df = get_clientes_df()
     df_filtrado = df[df['Lider'] == nro_lider]
     cantidad = df_filtrado.shape[0]
     etiqueta = f"{nombre_lider} ({nro_lider})" if nombre_lider else str(nro_lider)
+
+    if _pide_cantidad(palabras):
+        return f"El líder {etiqueta} tiene <strong>{cantidad}</strong> clientes."
 
     if _pide_listado(palabras):
         if cantidad == 0:
@@ -458,6 +485,40 @@ def _resolver_pedidos(palabras: list) -> str:
             )
             
         if not nro_lider:
+            if _pide_listado(palabras) or 'que' in palabras or 'qué' in palabras:
+                df_pedidos = get_pedidos_df()
+                campanas_unicas = [str(c).lower() for c in df_pedidos['Campaña'].unique()]
+                filtro_campana = next((p for p in palabras if p in campanas_unicas), None)
+                mes_detectado = next((m for m in MESES_NUM if m in palabras), None)
+                
+                if not filtro_campana and mes_detectado:
+                    mes_num = MESES_NUM[mes_detectado]
+                    anio_detectado = next((p for p in palabras if p.isnumeric() and len(p) == 4 and p.startswith('20')), None)
+                    if anio_detectado:
+                        filtro_campana = f"c{mes_num:02d}{anio_detectado[-2:]}"
+                    else:
+                        campanas_mes = [c for c in df_pedidos['Campaña'].unique() if c.lower().startswith(f"c{mes_num:02d}")]
+                        if campanas_mes:
+                            lideres_con_ventas = df_pedidos[df_pedidos['Campaña'].isin(campanas_mes)]['Lider'].unique()
+                            if _pide_cantidad(palabras):
+                                return f"Hubo <strong>{len(lideres_con_ventas)}</strong> líderes con ventas en {mes_detectado.capitalize()}."
+                            df_lideres = get_lideres_df()
+                            nombres = df_lideres[df_lideres['Lider'].isin(lideres_con_ventas)]['NombreLider'].dropna().tolist()
+                            return _formatear_lista_nombres(nombres, f"Los líderes con ventas en {mes_detectado.capitalize()} son")
+                        else:
+                            return f"No encontré ventas para el mes de {mes_detectado.capitalize()}."
+                
+                if filtro_campana:
+                    df_filtrado = df_pedidos[df_pedidos['Campaña'].str.lower() == filtro_campana]
+                    if df_filtrado.empty:
+                        return f"No hay ventas registradas para la campaña {filtro_campana.upper()}."
+                    lideres_con_ventas = df_filtrado['Lider'].unique()
+                    if _pide_cantidad(palabras):
+                        return f"Hubo <strong>{len(lideres_con_ventas)}</strong> líderes con ventas en la campaña {filtro_campana.upper()}."
+                    df_lideres = get_lideres_df()
+                    nombres = df_lideres[df_lideres['Lider'].isin(lideres_con_ventas)]['NombreLider'].dropna().tolist()
+                    return _formatear_lista_nombres(nombres, f"Los líderes con ventas en la campaña {filtro_campana.upper()} son")
+
             return "Entendí que buscas los pedidos de un líder. Por favor, indícame el nombre o número."
             
         df_lideres = get_lideres_df()

@@ -4,7 +4,7 @@ Chatbot inteligente para consultar datos de un sistema de ventas.
 Desarrollado con **Python + Pandas** para procesamiento, la librería oficial **google-genai** (gemini-3.5-flash) para la generación de lenguaje, y **Streamlit** como la interfaz de usuario principal (requerimiento de la API).
 
 **Limitaciones del Bot:**
-El agente adopta el rol de **Director de Ventas** (tono directo y educado).
+El agente adopta el rol de **Asistente de información comercial** (tono directo y educado).
 **Filtro estricto:** Solo tiene permitido responder a preguntas sobre ventas y clientes cargados, basándose enteramente en lo que el motor interno de NLP/Pandas le envía.
 
 ## Arquitectura del Proyecto

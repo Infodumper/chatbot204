@@ -51,10 +51,10 @@
 [data-theme="dark"] {
     --bg-main: var(--kaizuna-blue-dark);
     --bg-card: var(--kaizuna-blue);
-    --bg-app-sidebar: var(--kaizuna-blue-dark);
-    --bg-sidebar: var(--kaizuna-blue-dark);
+    --bg-app-sidebar: #196aab;
+    --bg-sidebar: #196aab;
     --bg-chat: transparent;
-    --bg-input-area: var(--kaizuna-blue-dark);
+    --bg-input-area: #196aab;
     --bg-input: rgba(255, 255, 255, 0.1);
     
     --text-primary: #FFFFFF;
@@ -129,8 +129,8 @@ body {
 }
 
 .app-sidebar {
-    width: 60px;
-    min-width: 60px;
+    width: 120px;
+    min-width: 120px;
     background-color: var(--bg-app-sidebar);
     display: flex;
     flex-direction: column;
@@ -143,17 +143,11 @@ body {
     margin-bottom: 30px;
 }
 
-.logo-k {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid #5A8259;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #5A8259;
-    font-weight: bold;
-    font-size: 1rem;
+.sidebar-logo {
+    width: 80px;
+    height: auto;
+    object-fit: contain;
+    transition: all 0.3s;
 }
 
 .nav-items {
@@ -335,10 +329,11 @@ body {
 
 .new-chat-btn {
     width: 100%;
-    padding: 10px;
-    background: transparent;
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
+    height: 54px;
+    padding: 10px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
     color: var(--text-primary);
     font-family: var(--font-ui);
     font-weight: 500;
@@ -347,20 +342,25 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
+
 [data-theme="light"] .new-chat-btn {
-    color: var(--kaizuna-blue);
-    border-color: var(--kaizuna-blue);
+    border: 1px solid var(--border-color);
+    background: var(--bg-input);
 }
 
 .new-chat-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--text-secondary);
+    border-color: var(--kaizuna-gold);
+    color: var(--kaizuna-gold);
+    box-shadow: 0 0 10px rgba(214, 167, 122, 0.2);
 }
+
 [data-theme="light"] .new-chat-btn:hover {
-    background: rgba(20, 88, 144, 0.05);
-    border-color: var(--kaizuna-blue);
+    background: var(--bg-card);
+    border-color: var(--kaizuna-gold);
+    color: var(--kaizuna-gold);
+    box-shadow: 0 0 10px rgba(214, 167, 122, 0.3);
 }
 
 /* Chat Area */

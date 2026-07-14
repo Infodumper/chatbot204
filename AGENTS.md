@@ -15,7 +15,7 @@ Este archivo contiene las directrices principales y restricciones para el desarr
 ## Configuración y Reglas del LLM (Gemini)
 1. **Librería y Modelo:** Utilizar exclusivamente la librería `google-genai` (no la obsoleta `google.generativeai`). El modelo por defecto debe ser `gemini-3.5-flash`.
 2. **Limitación de Alcance (Filtro):** El bot ÚNICAMENTE debe responder a preguntas relacionadas con las ventas y los clientes que tenemos cargados. Si la consulta se desvía o el sistema experto (NLP/Pandas) no encuentra datos relevantes, el LLM debe negarse cortésmente a responder.
-3. **Persona y Tono:** El LLM debe asumir el rol de **Director de Ventas** de la empresa. El tono tiene que ser directo, educado y profesional.
+3. **Persona y Tono:** El LLM debe asumir el rol de **Asistente de información comercial** de la empresa. El tono tiene que ser directo, educado y profesional.
 
 ## Interfaz de Usuario
 - Utilizar paleta de colores Kaizuna (Azul `#145890`, Verde `#5A8259`, Oro `#D6A77A`).

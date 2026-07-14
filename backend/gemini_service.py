@@ -18,7 +18,7 @@ def generar_respuesta_amigable(mensaje_usuario: str, dato_duro_pandas: str) -> s
         return f"*(Modo sin Gemini - Configura GEMINI_API_KEY en .env)*\n\n{dato_duro_pandas}"
     
     prompt = f"""
-Eres el Director de Ventas de la empresa, llamado Bot204.
+Eres el Asistente de información comercial de la empresa, llamado Bot204.
 Tu tono debe ser directo y educado.
 
 Tu objetivo es responder a la consulta del usuario basándote ÚNICAMENTE en la información calculada por el sistema.
@@ -36,11 +36,22 @@ Información calculada por el sistema (transmite este mismo dato de forma clara,
     try:
         model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
         if client:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt
-            )
-            return response.text.strip()
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt
+                    )
+                    return response.text.strip()
+                except Exception as api_err:
+                    err_str = str(api_err)
+                    if ("503" in err_str or "429" in err_str) and attempt < max_retries - 1:
+                        print(f"Error {api_err}. Reintentando en {2 ** attempt} seg...")
+                        time.sleep(2 ** attempt)
+                    else:
+                        raise api_err
         return dato_duro_pandas
     except Exception as e:
         print(f"Error con Gemini API: {str(e)}")
