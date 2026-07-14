@@ -59,6 +59,10 @@ Si el usuario comete un error de tipeo (ej. *"cunpleaños"* o *"maio"*), el sist
 ### 3.3 Categorización de Intenciones (Bag of Words)
 El sistema mantiene un diccionario de categorías con palabras clave asociadas. Asigna puntajes a cada categoría contando las coincidencias exactas y elige la categoría ganadora.
 
+### 3.4 Manejo de Contexto (Preguntas de seguimiento)
+Para que el bot pueda mantener una conversación natural, el motor guarda en memoria la **última intención detectada por usuario**. 
+Si el usuario hace una pregunta corta o de seguimiento (por ejemplo, después de preguntar *¿Quién tuvo mayor PVP en Marzo?* pregunta *¿Y en Abril?*), el sistema detecta que la nueva pregunta tiene conectores ("y") o es muy corta. Si la puntuación de intención es baja (solo detecta el mes de "Abril"), el bot **hereda la intención anterior** (`buscar_pedidos`) en lugar de saltar equivocadamente a buscar cumpleaños.
+
 **Intenciones soportadas:**
 
 | Intención | Palabras Clave | Ejemplo de Pregunta |

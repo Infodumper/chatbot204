@@ -118,8 +118,8 @@ class MotorNLP:
         return corregidas
 
     @staticmethod
-    def categorizar_intencion(palabras: list) -> str:
-        """Clasifica la intención del usuario mediante Bag of Words."""
+    def categorizar_intencion(palabras: list) -> tuple:
+        """Clasifica la intención del usuario mediante Bag of Words y retorna (intencion, score)."""
         mejor_cat = None
         mejor_score = 0
         for cat, keywords in CATEGORIAS.items():
@@ -127,7 +127,7 @@ class MotorNLP:
             if score > mejor_score:
                 mejor_score = score
                 mejor_cat = cat
-        return mejor_cat if mejor_score > 0 else "desconocido"
+        return (mejor_cat if mejor_score > 0 else "desconocido"), mejor_score
 
     @staticmethod
     def buscar_entidad(palabras: list, registros: list, col_nombre: str,
@@ -199,20 +199,35 @@ def _formatear_lista_nombres(nombres: list, intro: str, limite: int = 10) -> str
 # PROCESADOR PRINCIPAL
 # ==============================================================================
 
-def procesar_mensaje(mensaje: str) -> str:
+# Contexto global por usuario para resolver preguntas de seguimiento
+USER_CONTEXT = {}
+
+def procesar_mensaje(mensaje: str, username: str = "default") -> str:
     """
     Procesa un mensaje del usuario y devuelve la respuesta del chatbot.
 
     Pipeline: Limpiar → Autocorregir → Categorizar → Consultar Pandas → Responder.
+    Incluye manejo de contexto para consultas como "¿Y en Abril?".
     """
     # 1. Pipeline NLP
     palabras = MotorNLP.limpiar_texto(mensaje)
     palabras_corregidas = MotorNLP.autocorregir_palabras(palabras)
-    intencion = MotorNLP.categorizar_intencion(palabras_corregidas)
+    intencion, score = MotorNLP.categorizar_intencion(palabras_corregidas)
+
+    # 2. Manejo de contexto (seguimiento)
+    context = USER_CONTEXT.get(username, {})
+    es_seguimiento = "y" in palabras_corregidas or len(palabras_corregidas) <= 3
+    
+    # Si es una pregunta corta o con conector 'y', y la intención actual es débil (score <= 1)
+    if es_seguimiento and score <= 1 and "last_intent" in context:
+        intencion = context["last_intent"]
+        
+    if intencion != "desconocido":
+        USER_CONTEXT[username] = {"last_intent": intencion}
 
     print(f"DEBUG — Original: {mensaje}")
     print(f"DEBUG — Corregidas: {palabras_corregidas}")
-    print(f"DEBUG — Intención: {intencion}")
+    print(f"DEBUG — Intención final: {intencion} (Score original: {score})")
 
     # 2. Ejecutar la intención detectada
     if intencion == "cumpleanos_mes":

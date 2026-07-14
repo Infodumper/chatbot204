@@ -163,7 +163,7 @@ def chat_endpoint(request: ChatRequest, current_user: dict = Depends(get_current
     from backend.chat import procesar_mensaje
     from backend.gemini_service import generar_respuesta_amigable
     
-    dato_duro = procesar_mensaje(request.message)
+    dato_duro = procesar_mensaje(request.message, current_user.get("username", "default"))
     respuesta = generar_respuesta_amigable(request.message, dato_duro)
     return {"reply": respuesta}
 
