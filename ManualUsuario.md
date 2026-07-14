@@ -6,7 +6,7 @@ Este manual documenta todas las lógicas internas de procesamiento de datos, len
 
 ## 1. Arquitectura de Módulos
 
-El backend se compone de 5 módulos Python con responsabilidades separadas:
+El backend se compone de 6 módulos Python con responsabilidades separadas:
 
 | Módulo | Responsabilidad |
 |---|---|
