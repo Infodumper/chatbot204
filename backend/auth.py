@@ -18,11 +18,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Obtener credenciales desde las variables de entorno (con fallback a valores por defecto)
-admin_username = os.getenv("ADMIN_USERNAME", "Ignacio")
-admin_password = os.getenv("ADMIN_PASSWORD", "Admin123")
-user_username = os.getenv("USER_USERNAME", "Nacho")
-user_password = os.getenv("USER_PASSWORD", "Usuario123")
+# Obtener credenciales desde las variables de entorno
+admin_username = os.getenv("ADMIN_USERNAME")
+admin_password = os.getenv("ADMIN_PASSWORD")
+user_username = os.getenv("USER_USERNAME")
+user_password = os.getenv("USER_PASSWORD")
+
+# Validamos que estén configuradas en .env
+if not all([admin_username, admin_password, user_username, user_password]):
+    raise RuntimeError("Las credenciales de acceso no están configuradas en el archivo .env (ver .env.example)")
 
 # Definición de usuarios con contraseñas hasheadas (SHA-256)
 USERS = {
