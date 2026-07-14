@@ -4,6 +4,10 @@ data_loader.py — Carga centralizada de DataFrames limpios.
 Provee funciones reutilizables para leer los CSV de /datos_limpios.
 Tanto main.py (API REST) como chat.py (NLP) importan de aquí,
 eliminando la dependencia circular entre módulos.
+
+Nota: Los DataFrames se cargan desde disco en cada llamada.
+Esto es intencional para desarrollo (cambios reflejados al instante).
+Para producción, considerar cacheo con @lru_cache.
 """
 
 import os

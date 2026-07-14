@@ -1,3 +1,16 @@
+"""
+main.py — Servidor API REST (FastAPI) del proyecto Bot204.
+
+Expone endpoints para:
+  - Autenticación (login con tokens Bearer).
+  - Consultas directas a datos de clientes, pedidos y líderes (Swagger).
+  - Chat con el bot (NLP + Gemini).
+  - Servir el frontend estático (SPA).
+
+Ejecución:
+    uvicorn backend.main:app --reload
+"""
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles

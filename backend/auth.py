@@ -1,3 +1,15 @@
+"""
+auth.py — Módulo de autenticación y gestión de sesiones.
+
+Implementa un sistema de login basado en SHA-256 con sesiones
+en memoria. Los usuarios y contraseñas están definidos de forma
+estática (sin base de datos, según restricciones del proyecto).
+
+Limitaciones conocidas:
+  - Las sesiones se pierden al reiniciar el servidor.
+  - No hay expiración automática de tokens.
+"""
+
 import hashlib
 import secrets
 

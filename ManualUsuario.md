@@ -1,36 +1,66 @@
 # Manual de Usuario — Bot204
 
-Este manual documenta todas las lógicas internas de procesamiento de datos y lenguaje natural implementadas en el sistema.
+Este manual documenta todas las lógicas internas de procesamiento de datos, lenguaje natural y autenticación implementadas en el sistema.
 
 ---
 
 ## 1. Arquitectura de Módulos
 
-El backend se compone de 4 módulos Python con responsabilidades separadas:
+El backend se compone de 5 módulos Python con responsabilidades separadas:
 
 | Módulo | Responsabilidad |
 |---|---|
+| `auth.py` | Autenticación de usuarios (SHA-256) y gestión de sesiones en memoria |
 | `data_processor.py` | Limpieza de CSVs crudos → CSVs limpios |
 | `data_loader.py` | Carga centralizada de DataFrames (punto único de acceso a los datos) |
-| `main.py` | API REST (endpoints FastAPI) y conexión con Gemini |
+| `main.py` | API REST (endpoints FastAPI), autenticación Bearer y servidor de frontend |
 | `chat.py` | Motor NLP + resolución de intenciones con Pandas |
 | `gemini_service.py` | Envío del resultado calculado al LLM para su redacción amigable |
 
 ---
 
-## 2. Pipeline de Lenguaje Natural (NLP)
+## 2. Sistema de Autenticación
+
+### 2.1 Usuarios y Contraseñas
+El sistema cuenta con un registro de usuarios definido estáticamente en `auth.py`. Las contraseñas se almacenan hasheadas con **SHA-256** (nunca en texto plano).
+
+| Usuario | Rol | Contraseña |
+|---|---|---|
+| Ignacio | Admin | Admin123 |
+| Nacho | User | Usuario123 |
+
+### 2.2 Flujo de Login
+1. El usuario ingresa sus credenciales en el modal de login (frontend).
+2. El frontend envía un `POST /api/login` con `username` y `password`.
+3. El backend hashea la contraseña recibida, la compara contra el hash almacenado.
+4. Si coincide, genera un token seguro (`secrets.token_hex(32)`) y lo devuelve.
+5. El frontend guarda el token en `localStorage` y lo adjunta como header `Authorization: Bearer <token>` en todas las peticiones posteriores a `/api/chat`.
+
+### 2.3 Protección de Endpoints
+- `POST /api/login` → **público** (no requiere token).
+- `POST /api/chat` → **protegido** (requiere token Bearer válido).
+- Endpoints REST de Swagger (`/clientes`, `/pedidos`, etc.) → actualmente públicos.
+
+### 2.4 Limitaciones
+- Las sesiones viven en un diccionario de Python en memoria. **Se pierden al reiniciar el servidor.**
+- No hay expiración automática de tokens.
+- Si el backend devuelve un error 401, el frontend cierra la sesión automáticamente y redirige al modal de login.
+
+---
+
+## 3. Pipeline de Lenguaje Natural (NLP)
 
 El bot cuenta con un motor NLP propio, sin dependencias de modelos externos. Cada mensaje pasa por tres etapas:
 
-### 2.1 Limpieza y Tokenización
+### 3.1 Limpieza y Tokenización
 - Convierte el texto a minúsculas.
 - Elimina signos de puntuación con expresiones regulares.
 - Separa la oración en palabras individuales usando `nltk.word_tokenize`.
 
-### 2.2 Autocorrección (Distancia de Levenshtein)
+### 3.2 Autocorrección (Distancia de Levenshtein)
 Si el usuario comete un error de tipeo (ej. *"cunpleaños"* o *"maio"*), el sistema calcula la distancia matemática (Levenshtein, Programación Dinámica) entre cada palabra y un vocabulario interno. Si la distancia es ≤ 2, la palabra se autocorrige por su equivalente válido.
 
-### 2.3 Categorización de Intenciones (Bag of Words)
+### 3.3 Categorización de Intenciones (Bag of Words)
 El sistema mantiene un diccionario de categorías con palabras clave asociadas. Asigna puntajes a cada categoría contando las coincidencias exactas y elige la categoría ganadora.
 
 **Intenciones soportadas:**
@@ -44,7 +74,7 @@ El sistema mantiene un diccionario de categorías con palabras clave asociadas. 
 
 ---
 
-## 3. Formatos de Respuesta Dinámicos
+## 4. Formatos de Respuesta Dinámicos
 
 - **"¿Cuántos...?"** → Devuelve un número exacto.
 - **"¿Quién/Quiénes/Cuáles...?"** → Devuelve una lista de nombres (máximo 10 para no saturar la pantalla).
@@ -63,12 +93,12 @@ El sistema mantiene un diccionario de categorías con palabras clave asociadas. 
 
 ---
 
-## 4. Redacción con Google Gemini (LLM)
+## 5. Redacción con Google Gemini (LLM)
 
 Para que las respuestas sean fluidas y amigables, se ha integrado la API de **Google Gemini** (`gemini_service.py`).
 El flujo de una respuesta es el siguiente:
-1. El motor NLP procesa la consulta (Sección 2).
-2. Pandas filtra y calcula el *Dato Duro* (Secciones 3).
+1. El motor NLP procesa la consulta (Sección 3).
+2. Pandas filtra y calcula el *Dato Duro* (Sección 4).
 3. Este "Dato Duro" se inyecta en un *prompt de sistema* que se envía a Gemini.
 4. Se le prohíbe explícitamente a Gemini realizar cálculos aritméticos, inventar números o modificar la verdad del dato. Su única función es la **redacción** amigable (agregar emojis, saludar, formatear de manera conversacional).
 
@@ -76,9 +106,9 @@ El flujo de una respuesta es el siguiente:
 
 ---
 
-## 5. Lógica del Sistema de Líderes
+## 6. Lógica del Sistema de Líderes
 
-### 4.1 Asignación Dinámica (Última Campaña — CooAA)
+### 6.1 Asignación Dinámica (Última Campaña — CooAA)
 Los pedidos se identifican por campañas con formato **CooAA**:
 - `C` = Fijo.
 - `oo` = Orden cronológico (01, 02... 13).
@@ -92,19 +122,19 @@ Durante el procesamiento de datos (`data_processor.py`), el sistema:
 
 **Resultado:** El líder de un cliente siempre refleja su actividad más reciente.
 
-### 4.2 Búsqueda Fuzzy de Líderes por Nombre
+### 6.2 Búsqueda Fuzzy de Líderes por Nombre
 Cuando el usuario pregunta por un líder usando su nombre (ej. *"Carolina"*), el bot:
 1. Carga `lideres.csv`.
 2. Compara el texto del usuario contra cada `NombreLider` usando Levenshtein.
 3. Si encuentra una coincidencia (distancia ≤ 2), obtiene el ID numérico.
 4. Filtra `clientes_limpio.csv` con ese ID.
 
-### 4.3 Búsqueda Fuzzy de Clientes por Nombre
+### 6.3 Búsqueda Fuzzy de Clientes por Nombre
 Para la intención de pedidos, el bot también puede buscar clientes por nombre. Como los nombres pueden ser compuestos (ej. *"GARCIA LOPEZ MARIA"*), la búsqueda se realiza parte por parte con una tolerancia más estricta (distancia ≤ 1).
 
 ---
 
-## 5. Procesamiento de Datos (`data_processor.py`)
+## 7. Procesamiento de Datos (`data_processor.py`)
 
 ### Orden de Ejecución
 1. **`clean_pedidos()`** → Genera `pedidos_limpio.csv` y retorna el mapeo de último líder.
@@ -123,10 +153,33 @@ Para la intención de pedidos, el bot también puede buscar clientes por nombre.
 | Eliminación de columnas innecesarias | IdCliente, IdClip | IdEnvio, Costo_Rev, Rango, Nombre_Lider |
 | Renombrar Cliente → Nombre | ✓ | — |
 | Asignación dinámica de Líder (CooAA) | ✓ | — |
+| Formatear Lider y NroDoc como texto (sin .0) | ✓ | — |
+| Merge con estadísticas de pedidos | ✓ | — |
 
 ---
 
-## 6. Comandos de Prueba
+## 8. Interfaz de Usuario (Frontend)
+
+### 8.1 Barra Lateral Izquierda
+La barra lateral contiene (de arriba a abajo):
+- **Logo** del proyecto.
+- **Nombre:** "Bot204".
+- **Iconos decorativos** (Phosphor Icons): Equipo, Swagger (abre `/docs` en pestaña nueva), Agentes IA.
+- **Botón de tema** claro/oscuro (sol/luna).
+- **Nombre del usuario** logueado (al hacer clic, despliega opción "Cerrar sesión").
+
+### 8.2 Área Principal
+- Cabecera con título "Comunicación Interna".
+- Panel lateral de consultas (lista de conversaciones).
+- Ventana de chat con mensajes del usuario y del bot.
+- Input de texto con envío por Enter o botón.
+
+### 8.3 Temas
+El sistema soporta modo **claro** y **oscuro**. La preferencia se guarda en `localStorage` y persiste entre sesiones.
+
+---
+
+## 9. Comandos de Prueba
 
 | Pregunta | Respuesta esperada |
 |---|---|
