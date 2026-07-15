@@ -9,7 +9,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
 
-def generar_respuesta_amigable(mensaje_usuario: str, dato_duro_pandas: str) -> str:
+def generar_respuesta_amigable(mensaje_usuario: str, dato_duro_pandas: str, es_primer_mensaje: bool = True) -> str:
     """
     Toma el resultado procesado por Pandas (dato_duro_pandas) y el mensaje original,
     y utiliza Gemini para redactar una respuesta amigable.
@@ -17,9 +17,16 @@ def generar_respuesta_amigable(mensaje_usuario: str, dato_duro_pandas: str) -> s
     if not api_key or api_key == "tu_api_key_aqui":
         return f"*(Modo sin Gemini - Configura GEMINI_API_KEY en .env)*\n\n{dato_duro_pandas}"
     
+    # El bot estático ya saluda en la UI, por lo que Gemini nunca debe presentarse.
+    intro = (
+        "Eres el Asistente de información comercial de la empresa.\n"
+        "Tu tono debe ser directo y educado.\n"
+        "REGLA CRÍTICA: NO saludes ni te presentes bajo ninguna circunstancia (NO digas 'Hola, soy Bot204', ni 'Soy tu asistente'). "
+        "El usuario ya sabe quién eres. Simplemente responde directo a la consulta con la información proporcionada."
+    )
+    
     prompt = f"""
-Eres el Asistente de información comercial de la empresa, llamado Bot204.
-Tu tono debe ser directo y educado.
+{intro}
 
 Tu objetivo es responder a la consulta del usuario basándote ÚNICAMENTE en la información calculada por el sistema.
 ESTRICTAMENTE solo puedes responder a preguntas relacionadas con las ventas y los clientes que tenemos cargados.

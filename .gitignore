@@ -7,8 +7,9 @@ __pycache__/
 .env
 
 # Datos sensibles y de proceso
-datos_perla/
 clientes_colores*.png
 
 # Procesos intermedios
 X_*.md
+
+chat_history.json

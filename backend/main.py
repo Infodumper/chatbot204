@@ -21,6 +21,7 @@ from pydantic import BaseModel
 
 from backend.data_loader import get_clientes_df, get_pedidos_df, get_lideres_df
 import backend.auth as auth
+from backend.session_manager import get_user_sessions, get_session_messages, add_message_to_session, create_session
 
 app = FastAPI(
     title="API del Chatbot Bot204",
@@ -58,7 +59,9 @@ def login(request: LoginRequest):
 
 @app.get("/api/estado", tags=["Sistema"])
 def get_estado():
-    return {"estado": "online", "mensaje": "El backend y Swagger están funcionando correctamente."}
+    from backend.session_manager import HISTORY_FILE
+    import os
+    return {"estado": "online", "mensaje": "El backend y Swagger están funcionando correctamente.", "history_file": HISTORY_FILE, "exists": os.path.exists(HISTORY_FILE)}
 
 @app.get("/clientes", tags=["Clientes"])
 def get_todos_los_clientes():
@@ -154,8 +157,23 @@ def get_pedidos_por_lider(nro_lider: float):
     df = df[df['Lider'] == nro_lider]
     return df.to_dict(orient="records")
 
+from typing import Optional
+
 class ChatRequest(BaseModel):
     message: str
+    session_id: Optional[str] = None
+
+@app.get("/api/chat/sessions", tags=["Chatbot"])
+def get_sessions(current_user: dict = Depends(get_current_user)):
+    """Obtiene el historial de sesiones del usuario actual."""
+    username = current_user.get("username", "default")
+    return get_user_sessions(username)
+
+@app.get("/api/chat/sessions/{session_id}", tags=["Chatbot"])
+def get_session_details(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Obtiene los mensajes de una sesión específica."""
+    username = current_user.get("username", "default")
+    return get_session_messages(username, session_id)
 
 @app.post("/api/chat", tags=["Chatbot"])
 def chat_endpoint(request: ChatRequest, current_user: dict = Depends(get_current_user)):
@@ -163,9 +181,22 @@ def chat_endpoint(request: ChatRequest, current_user: dict = Depends(get_current
     from backend.chat import procesar_mensaje
     from backend.gemini_service import generar_respuesta_amigable
     
-    dato_duro = procesar_mensaje(request.message, current_user.get("username", "default"))
-    respuesta = generar_respuesta_amigable(request.message, dato_duro)
-    return {"reply": respuesta}
+    username = current_user.get("username", "default")
+    session_id = request.session_id
+    session_messages = get_session_messages(username, session_id) if session_id else []
+    es_primer_mensaje = len(session_messages) <= 1 # <= 1 porque el primer elemento siempre es el saludo del bot
+    
+    if not session_id:
+        session_id = create_session(username)
+        
+    add_message_to_session(username, session_id, "user", request.message)
+    
+    dato_duro = procesar_mensaje(request.message, username)
+    respuesta = generar_respuesta_amigable(request.message, dato_duro, es_primer_mensaje)
+    
+    add_message_to_session(username, session_id, "bot", respuesta)
+    
+    return {"reply": respuesta, "session_id": session_id}
 
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
 if os.path.exists(frontend_path):

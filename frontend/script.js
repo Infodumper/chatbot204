@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
 
     // Check auth
+    let currentSessionId = null;
     let authToken = localStorage.getItem('auth_token');
     let authUsername = localStorage.getItem('auth_username');
     if (authToken) {
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('current-username').textContent = authUsername;
             loginModal.style.display = 'none';
             appLayout.style.display = 'flex';
+            loadSessions();
         })
         .catch(error => {
             loginError.textContent = error.message;
@@ -122,19 +124,115 @@ document.addEventListener('DOMContentLoaded', () => {
     // New Chat functionality
     const newChatBtn = document.getElementById('new-chat-btn');
     const tabsList = document.getElementById('chat-tabs-list');
-    let consultationCount = 1;
+
+    function loadSessions() {
+        if (!authToken) return;
+        fetch('/api/chat/sessions', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('auth_username');
+                    window.location.reload();
+                }
+                throw new Error("Failed to load sessions");
+            }
+            return response.json();
+        })
+        .then(sessions => {
+            tabsList.innerHTML = '';
+            if (sessions.length > 0 && !currentSessionId) {
+                currentSessionId = sessions[0].id;
+            }
+            sessions.forEach(session => {
+                const tab = document.createElement('div');
+                const isActive = session.id === currentSessionId;
+                tab.className = `sidebar-item ${isActive ? 'active' : ''}`;
+                tab.innerHTML = `<span class="status-dot ${isActive ? 'online' : 'offline'}"></span> ${session.title}`;
+                tab.addEventListener('click', () => {
+                    loadSessionMessages(session.id, tab);
+                });
+                tabsList.appendChild(tab);
+            });
+            
+            if (currentSessionId && document.querySelectorAll('.sidebar-item').length > 0) {
+                // To avoid reloading if we just switched
+                if (chatMessages.innerHTML.trim() === '' || chatMessages.children.length <= 1) {
+                    loadSessionMessages(currentSessionId, null);
+                }
+            }
+        })
+        .catch(console.error);
+    }
+
+    function loadSessionMessages(sessionId, tabElement) {
+        currentSessionId = sessionId;
+        if (tabElement) {
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                item.querySelector('.status-dot').className = 'status-dot offline';
+            });
+            tabElement.classList.add('active');
+            tabElement.querySelector('.status-dot').className = 'status-dot online';
+        } else {
+            // Find tab visually
+            const tabs = document.querySelectorAll('.sidebar-item');
+            tabs.forEach(item => {
+                if(item.textContent.includes(sessionId)) { // Not perfectly accurate but handles visual state partially
+                    // Actually we don't have session id in DOM text, just skip finding tab if null
+                }
+            });
+        }
+        
+        chatMessages.innerHTML = '';
+        fetch(`/api/chat/sessions/${sessionId}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('auth_username');
+                    window.location.reload();
+                }
+                throw new Error("Failed to load session messages");
+            }
+            return response.json();
+        })
+        .then(messages => {
+            if (!messages || messages.length === 0) {
+                // Si por alguna razón la sesión está vacía, mostrar mensaje por defecto
+                addMessage("Esta consulta no tiene mensajes.", 'bot-message');
+                return;
+            }
+            messages.forEach(msg => {
+                addMessage(msg.content || "", msg.role === 'bot' ? 'bot-message' : 'user-message');
+            });
+        })
+        .catch(err => {
+            console.error("Error loading messages:", err);
+            chatMessages.innerHTML = ''; // Ensure it's clear
+            addMessage("Hubo un error al cargar la consulta. Por favor, recarga la página.", 'bot-message');
+        });
+    }
+
+    // Call loadSessions on init if logged in
+    if (authToken) {
+        loadSessions();
+    }
 
     newChatBtn.addEventListener('click', () => {
-        // Clear messages
-        chatMessages.innerHTML = '';
+        if (currentSessionId === null && tabsList.children.length > 0) {
+            // Ya estamos en una nueva consulta y hay una tab en la UI, no hacer nada
+            return;
+        }
         
-        // Add greeting
+        currentSessionId = null;
+        chatMessages.innerHTML = '';
         addMessage("¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?", 'bot-message');
         
-        // Add new tab in sidebar
-        consultationCount++;
-        
-        // Remove active class from all
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.classList.remove('active');
             item.querySelector('.status-dot').className = 'status-dot offline';
@@ -142,19 +240,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const newTab = document.createElement('div');
         newTab.className = 'sidebar-item active';
-        newTab.innerHTML = `<span class="status-dot online"></span> Consulta ${consultationCount}`;
+        newTab.innerHTML = `<span class="status-dot online"></span> Nueva Consulta`;
         
-        // Add click event to tab (just visual for now, as we don't save history)
-        newTab.addEventListener('click', function() {
-            document.querySelectorAll('.sidebar-item').forEach(item => {
-                item.classList.remove('active');
-                item.querySelector('.status-dot').className = 'status-dot offline';
-            });
-            this.classList.add('active');
-            this.querySelector('.status-dot').className = 'status-dot online';
+        newTab.addEventListener('click', () => {
+            if (currentSessionId !== null) {
+                currentSessionId = null;
+                chatMessages.innerHTML = '';
+                addMessage("¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?", 'bot-message');
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.classList.remove('active');
+                    item.querySelector('.status-dot').className = 'status-dot offline';
+                });
+                newTab.classList.add('active');
+                newTab.querySelector('.status-dot').className = 'status-dot online';
+            }
         });
-
-        // Insert after the first one or at top
+        
         tabsList.insertBefore(newTab, tabsList.firstChild);
     });
 
@@ -181,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`
             },
-            body: JSON.stringify({ message: messageText })
+            body: JSON.stringify({ message: messageText, session_id: currentSessionId })
         })
         .then(response => {
             if (response.status === 401) {
@@ -192,10 +293,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginModal.style.display = 'flex';
                 throw new Error("Sesión expirada");
             }
+            if (!response.ok) {
+                throw new Error("Error del servidor: " + response.status);
+            }
             return response.json();
         })
         .then(data => {
             typingIndicator.remove();
+            
+            let wasNewSession = !currentSessionId;
+            currentSessionId = data.session_id;
+            
+            if (wasNewSession) {
+                loadSessions();
+            }
+            
             setTimeout(() => {
                 addMessage(data.reply, 'bot-message');
             }, 300);
