@@ -388,7 +388,11 @@ def _resolver_pedidos(palabras: list) -> str:
                 df_pedidos = df_pedidos[df_pedidos['Campaña'].str.lower().str.startswith(prefix)]
                 if df_pedidos.empty:
                     return f"No hay pedidos registrados para el mes de {mes_aplicado}."
-    
+        elif anio_detectado:
+            suffix = anio_detectado[-2:]
+            df_pedidos = df_pedidos[df_pedidos['Campaña'].str.lower().str.endswith(suffix)]
+            if df_pedidos.empty:
+                return f"No hay pedidos registrados para el año {anio_detectado}."
     if filtro_campana:
         df_pedidos = df_pedidos[df_pedidos['Campaña'].str.lower() == filtro_campana]
         if df_pedidos.empty:
@@ -452,6 +456,23 @@ def _resolver_pedidos(palabras: list) -> str:
         df_pedidos = df_pedidos[df_pedidos[filtro_tipo] == filtro_entidad_nro]
         if df_pedidos.empty:
             return f"No hay pedidos registrados para {filtro_entidad_nombre}."
+
+    # 3.5 Interceptar si piden un listado de meses/campañas:
+    es_listado_temporal = ('meses' in palabras or 'campañas' in palabras) and ('que' in palabras or 'qué' in palabras or 'cuales' in palabras or 'cuáles' in palabras or 'en' in palabras)
+    if es_listado_temporal and not filtro_campana and not mes_aplicado and not es_top:
+        campanas_encontradas = sorted(df_pedidos['Campaña'].str.upper().unique().tolist())
+        nombres_meses = {v: k.capitalize() for k, v in MESES_NUM.items()}
+        lista_formateada = []
+        for c in campanas_encontradas:
+            if len(c) >= 5:
+                mes = int(c[1:3])
+                anio = "20" + c[3:5]
+                nombre = nombres_meses.get(mes, str(mes))
+                lista_formateada.append(f"{nombre} ({anio})")
+        if not lista_formateada:
+            return "No hay pedidos registrados en el período consultado."
+        prefijo = f"Para {filtro_entidad_nombre}, h" if filtro_entidad_nombre else "H"
+        return f"{prefijo}ubo pedidos en los siguientes meses/campañas:<br>• " + "<br>• ".join(lista_formateada)
 
     texto_campana = f" en la campaña <strong>{filtro_campana.upper()}</strong>" if filtro_campana else (f" en el mes de <strong>{mes_aplicado}</strong>" if mes_aplicado else "")
     texto_promedio = " promedio" if es_promedio else ""
