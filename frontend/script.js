@@ -212,6 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (chatMessages.innerHTML.trim() === '' || chatMessages.children.length <= 1) {
                     loadSessionMessages(currentSessionId, null);
                 }
+            } else if (sessions.length === 0) {
+                chatMessages.innerHTML = '';
+                addMessage(`¡Hola, ${authUsername || 'Usuario'}! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?`, 'bot-message');
             }
         })
         .catch(console.error);
