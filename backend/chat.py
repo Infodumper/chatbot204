@@ -284,7 +284,7 @@ def _resolver_cumpleanos(palabras: list) -> str:
             except Exception:
                 return f"El cumpleaños de {nombre_cliente} está registrado como: {fec_nac}."
 
-        return "Entendí que preguntas por cumpleaños, pero no detecté un mes válido ni el nombre de un cliente."
+        return "No cuento con información sobre esa consulta en este momento. Recuerda que solo respondo a consultas relacionadas con ventas, clientes cargados, líderes y pedidos."
 
     df_fechas = pd.to_datetime(df['FecNac'], errors='coerce')
     df_filtrado = df[df_fechas.dt.month == MESES_NUM[mes_detectado]]
@@ -335,7 +335,7 @@ def _resolver_lider(palabras: list) -> str:
             nombres = df_lideres['NombreLider'].dropna().tolist()
             return _formatear_lista_nombres(nombres, "Los líderes registrados son", limite=20)
             
-        return "Entendí que buscas por líder. Por favor, indícame el nombre o el número de líder."
+        return "No cuento con información sobre esa consulta en este momento. Recuerda que solo respondo a consultas relacionadas con ventas, clientes cargados, líderes y pedidos."
 
     df = get_clientes_df()
     df_filtrado = df[df['Lider'] == nro_lider]
@@ -556,7 +556,7 @@ def _resolver_pedidos(palabras: list) -> str:
         # 6. Global Stats (no entity found)
         # Check if they explicitly wanted a specific entity but we couldn't find it
         if posibles_nombres and not (filtro_campana or mes_aplicado or es_promedio or es_unidades or es_pvp):
-            return "Entendí que buscas pedidos de alguien, pero no encontré ese nombre. Por favor, sé más específico o usa el número de cliente/líder."
+            return "No cuento con información sobre esa consulta en este momento. Recuerda que solo respondo a consultas relacionadas con ventas, clientes cargados, líderes y pedidos."
             
         cantidad_pedidos = df_pedidos.shape[0]
         unidades_total = df_pedidos['Unidades'].sum()

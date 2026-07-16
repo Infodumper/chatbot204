@@ -66,10 +66,10 @@ GEMINI_API_KEY=tu_api_key_de_google_gemini
 GEMINI_MODEL=gemini-3.5-flash
 
 # Credenciales de acceso
-ADMIN_USERNAME=Ignacio
-ADMIN_PASSWORD=Admin123
-USER_USERNAME=Nacho
-USER_PASSWORD=Usuario123
+ADMIN_USERNAME=tu_usuario_admin
+ADMIN_PASSWORD=tu_password_admin
+USER_USERNAME=tu_usuario_regular
+USER_PASSWORD=tu_password_regular
 ```
 
 > Si no se configura la API Key, el bot funciona igualmente pero devuelve los datos crudos sin redacción amigable.

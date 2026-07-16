@@ -6,7 +6,7 @@
     <title>Bot204 - Asistente de información comercial</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Crimson+Pro:wght@600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="/static/style.css?v=6">
+    <link rel="stylesheet" href="/static/style.css?v=7">
 </head>
 <body>
     <div class="orb orb-1"></div>
@@ -120,7 +120,7 @@
                 <main class="chat-messages" id="chat-messages">
                     <div class="message bot-message">
                         <div class="message-content">
-                            ¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?
+                            ¡Hola, Usuario! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?
                         </div>
                     </div>
                 </main>
@@ -145,7 +145,18 @@
             </div>
         </div>
     </div>
+    <!-- Custom Confirm Modal -->
+    <div id="confirm-modal" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <h3>Eliminar Consulta</h3>
+            <p>¿Estás seguro de que deseas eliminar esta consulta?</p>
+            <div class="custom-modal-actions">
+                <button id="confirm-cancel-btn" class="custom-modal-btn custom-modal-btn-cancel">Cancelar</button>
+                <button id="confirm-ok-btn" class="custom-modal-btn custom-modal-btn-confirm">Eliminar</button>
+            </div>
+        </div>
+    </div>
 
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js?v=7"></script>
 </body>
 </html>

@@ -765,3 +765,97 @@ body {
     font-size: 0.9rem;
     border: 1px solid rgba(220, 53, 69, 0.2);
 }
+
+/* Custom Modal */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.custom-modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.custom-modal-content {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.custom-modal-overlay.show .custom-modal-content {
+    transform: translateY(0);
+}
+
+.custom-modal-content h3 {
+    margin-top: 0;
+    font-family: var(--font-heading);
+    color: var(--text-title);
+    font-size: 1.5rem;
+}
+
+.custom-modal-content p {
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    font-family: var(--font-ui);
+}
+
+.custom-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.custom-modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.custom-modal-btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+.custom-modal-btn-cancel:hover {
+    background: var(--bg-input);
+}
+
+.custom-modal-btn-confirm {
+    background: var(--kaizuna-blue);
+    color: white;
+}
+.custom-modal-btn-confirm:hover {
+    background: var(--kaizuna-blue-dark);
+}
+[data-theme="dark"] .custom-modal-btn-confirm {
+    background: var(--kaizuna-gold);
+    color: var(--kaizuna-blue-dark);
+}
+[data-theme="dark"] .custom-modal-btn-confirm:hover {
+    background: var(--kaizuna-gold-light);
+}

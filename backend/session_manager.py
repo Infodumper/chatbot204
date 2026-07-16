@@ -35,20 +35,35 @@ def get_session_messages(username: str, session_id: str):
             return s.get("messages", [])
     return []
 
+def get_next_session_num(username: str, data: dict) -> int:
+    if username not in data or not data[username]:
+        return 1
+    max_num = 0
+    for s in data[username]:
+        title = s.get("title", "")
+        if title.startswith("Consulta "):
+            try:
+                num = int(title.replace("Consulta ", ""))
+                if num > max_num:
+                    max_num = num
+            except ValueError:
+                pass
+    return max_num + 1
+
 def create_session(username: str, initial_message=None):
     data = load_history()
     if username not in data:
         data[username] = []
         
     session_id = str(uuid.uuid4())
-    num_sessions = len(data[username]) + 1
+    num_sessions = get_next_session_num(username, data)
     
     new_session = {
         "id": session_id,
         "title": f"Consulta {num_sessions}",
         "created_at": datetime.now().isoformat(),
         "messages": [
-            {"role": "bot", "content": "¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?"}
+            {"role": "bot", "content": f"¡Hola, {username}! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?"}
         ]
     }
     
@@ -58,6 +73,14 @@ def create_session(username: str, initial_message=None):
     data[username].insert(0, new_session) # Add at the beginning
     save_history(data)
     return session_id
+
+def delete_session(username: str, session_id: str):
+    data = load_history()
+    if username in data:
+        original_len = len(data[username])
+        data[username] = [s for s in data[username] if s["id"] != session_id]
+        if len(data[username]) < original_len:
+            save_history(data)
 
 def add_message_to_session(username: str, session_id: str, role: str, content: str):
     data = load_history()

@@ -175,6 +175,14 @@ def get_session_details(session_id: str, current_user: dict = Depends(get_curren
     username = current_user.get("username", "default")
     return get_session_messages(username, session_id)
 
+@app.delete("/api/chat/sessions/{session_id}", tags=["Chatbot"])
+def delete_session_endpoint(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Elimina una sesión de chat específica."""
+    from backend.session_manager import delete_session
+    username = current_user.get("username", "default")
+    delete_session(username, session_id)
+    return {"status": "success"}
+
 @app.post("/api/chat", tags=["Chatbot"])
 def chat_endpoint(request: ChatRequest, current_user: dict = Depends(get_current_user)):
     """Procesa un mensaje del usuario y devuelve la respuesta del chatbot enriquecida con Gemini."""

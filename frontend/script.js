@@ -10,6 +10,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginError = document.getElementById('login-error');
     const loginBtn = document.getElementById('login-btn');
 
+    // Confirm Modal Elements
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+    const confirmOkBtn = document.getElementById('confirm-ok-btn');
+    let sessionToDelete = null;
+
+    function showConfirmModal(sessionId) {
+        sessionToDelete = sessionId;
+        confirmModal.classList.add('show');
+    }
+
+    function hideConfirmModal() {
+        sessionToDelete = null;
+        confirmModal.classList.remove('show');
+    }
+
+    confirmCancelBtn.addEventListener('click', hideConfirmModal);
+    
+    confirmOkBtn.addEventListener('click', () => {
+        if (!sessionToDelete) return;
+        const sessionId = sessionToDelete;
+        hideConfirmModal();
+        
+        fetch(`/api/chat/sessions/${sessionId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        }).then(response => {
+            if (response.ok) {
+                if (currentSessionId === sessionId) {
+                    currentSessionId = null;
+                    chatMessages.innerHTML = '';
+                    addMessage(`¡Hola, ${authUsername || 'Usuario'}! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?`, 'bot-message');
+                }
+                loadSessions();
+            }
+        });
+    });
+
     // Check auth
     let currentSessionId = null;
     let authToken = localStorage.getItem('auth_token');
@@ -150,8 +188,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tab = document.createElement('div');
                 const isActive = session.id === currentSessionId;
                 tab.className = `sidebar-item ${isActive ? 'active' : ''}`;
-                tab.innerHTML = `<span class="status-dot ${isActive ? 'online' : 'offline'}"></span> ${session.title}`;
-                tab.addEventListener('click', () => {
+                tab.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><span class="status-dot ${isActive ? 'online' : 'offline'}"></span> ${session.title}</span>
+                        <button class="delete-session-btn" style="background: none; border: none; cursor: pointer; color: #d6a77a; margin-left: 5px; display: flex; align-items: center;" title="Eliminar consulta">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                `;
+                tab.addEventListener('click', (e) => {
+                    if (e.target.closest('.delete-session-btn')) {
+                        e.stopPropagation();
+                        showConfirmModal(session.id);
+                        return;
+                    }
                     loadSessionMessages(session.id, tab);
                 });
                 tabsList.appendChild(tab);
@@ -231,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         currentSessionId = null;
         chatMessages.innerHTML = '';
-        addMessage("¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?", 'bot-message');
+        addMessage(`¡Hola, ${authUsername || 'Usuario'}! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?`, 'bot-message');
         
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.classList.remove('active');
@@ -246,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSessionId !== null) {
                 currentSessionId = null;
                 chatMessages.innerHTML = '';
-                addMessage("¡Hola! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?", 'bot-message');
+                addMessage(`¡Hola, ${authUsername || 'Usuario'}! 👋 Soy <b>Bot204</b>, tu asistente de información comercial. ¿En qué te puedo ayudar hoy?`, 'bot-message');
                 document.querySelectorAll('.sidebar-item').forEach(item => {
                     item.classList.remove('active');
                     item.querySelector('.status-dot').className = 'status-dot offline';
