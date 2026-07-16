@@ -35,7 +35,7 @@ Por motivos de seguridad, las contraseñas no se exponen en esta documentación.
 ### 2.3 Protección de Endpoints
 - `POST /api/login` → **público** (no requiere token).
 - `POST /api/chat` → **protegido** (requiere token Bearer válido).
-- Endpoints REST de Swagger (`/clientes`, `/pedidos`, etc.) → actualmente públicos.
+- Todos los demás endpoints internos de gestión de historial y chat están protegidos.
 
 ### 2.4 Limitaciones
 - Las sesiones viven en un diccionario de Python en memoria. **Se pierden al reiniciar el servidor.**
